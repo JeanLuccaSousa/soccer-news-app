@@ -1,29 +1,57 @@
 package me.dio.soccernews.ui.news;
 
+import android.telecom.Call;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import me.dio.soccernews.data.remote.SoccerNewsApi;
 import me.dio.soccernews.domain.News;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class NewsViewModel extends ViewModel {
 
-    private final MutableLiveData<List<News>> news;
+    private final MutableLiveData<List<News>> news = new MutableLiveData<>();
+    private final SoccerNewsApi api;
 
     public NewsViewModel() {
-        this.news = new MutableLiveData<>();
 
-        //TODO remover Mock de notícias
-        List<News> news = new ArrayList<>();
-        news.add(new News("Palmeiras Tem Desfalque Importante","testando para ver se funciona "));
-        news.add(new News("Palmeiras Joga Amanhã", "testando para ver se funciona "));
-        news.add(new News("Copa do Mundo Feminina Está Terminando", "testando para ver se funciona "));
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://jeanluccasousa.github.io/soccer-news-api/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
 
-        this.news.setValue(news);
+        api = retrofit.create(SoccerNewsApi.class);
+        this.findNews();
+
     }
+
+        private void findNews() {
+
+
+        api.getNews().enqueue(new Callback<List<News>>() {
+            @Override
+            public void onResponse(Call<List<News>> call, Response<List<News>> response) {
+                if(response.isSuccessful()) {
+                    news.setValue(response.body());
+                }else {
+                    //TODO
+                }
+
+                @Override
+                public void onFailure(Call<List<News>> call, Throwable) {
+                    //TODO
+                }
+
+        });
+
+        }
+
+
+
 
     public LiveData<List<News>> getNews() {
         return news;
